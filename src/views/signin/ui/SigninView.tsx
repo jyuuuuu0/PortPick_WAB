@@ -3,8 +3,37 @@ import Link from "next/link";
 
 export default function SigninView() {
   return (
-    <div className="bg-[#F8F8F8] dark:bg-[#121212] text-black dark:text-white flex justify-center lg:justify-end w-full min-h-screen p-4 sm:p-8 lg:p-[110px]">
-      <div className="bg-white dark:bg-[#1E1E1E] max-w-[806px] w-full max-h-[863px] flex flex-col items-center justify-center gap-8 sm:gap-[60px] rounded-[20px] shadow-2xl p-6 sm:p-10 lg:p-[65px]">
+    <div className="relative overflow-hidden bg-[#F8F8F8] dark:bg-[#121212] text-black dark:text-white flex justify-center lg:justify-end w-full min-h-screen p-4 sm:p-8 lg:p-[110px]">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-80 dark:opacity-40"
+      >
+        <div
+          className="absolute -left-[15%] top-[6%] w-[55%] h-[43%] rounded-full"
+          style={{
+            background:
+              "linear-gradient(260deg, #C1D95C 33%, #FFFFFF 102%)",
+            filter: "blur(140px)",
+          }}
+        />
+        <div
+          className="absolute left-[8%] top-[9%] w-[50%] h-[48%] rounded-full"
+          style={{
+            background:
+              "linear-gradient(5deg, #D6E95D 28%, rgba(255,255,255,0) 98%)",
+            filter: "blur(140px)",
+          }}
+        />
+        <div
+          className="absolute -left-[10%] top-0 w-[45%] h-[45%] rounded-full"
+          style={{
+            background:
+              "linear-gradient(196deg, #D4FFA0 23%, #FFFFFF 56%)",
+            filter: "blur(140px)",
+          }}
+        />
+      </div>
+      <div className="relative z-10 bg-white dark:bg-[#1E1E1E] max-w-[806px] w-full max-h-[863px] flex flex-col items-center justify-center gap-8 sm:gap-[60px] rounded-[20px] shadow-2xl p-6 sm:p-10 lg:p-[65px]">
         <div className="flex flex-col items-center gap-8 sm:gap-[60px] w-full max-w-[678px]">
           <div className="flex flex-col self-start w-full text-left">
             <h1 className="font-medium text-2xl sm:text-3xl lg:text-4xl">
