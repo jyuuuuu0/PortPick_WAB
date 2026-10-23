@@ -7,8 +7,17 @@ import { useSignupForm } from "../model/useSignupForm";
 import NavButton from "./NavButton";
 
 export default function SignupView() {
-  const { step, form, update, canProceed, goNext, goPrev, goToStep } =
-    useSignupForm();
+  const {
+    step,
+    form,
+    update,
+    selectProfileImage,
+    canProceed,
+    goNext,
+    goPrev,
+    submit,
+    submitting,
+  } = useSignupForm();
 
   // 왼쪽 화살표: 2·3단계 / 오른쪽 화살표: 1·2단계 (프로필/완료 단계는 자체 버튼으로 이동)
   const showPrev = step === 1 || step === 2;
@@ -45,12 +54,10 @@ export default function SignupView() {
             <ProfileStep
               name={form.name}
               profileImage={form.profileImage}
-              onSelectImage={update("profileImage")}
-              onComplete={() => goToStep(3)}
-              onSkip={() => {
-                update("profileImage")("");
-                goToStep(3);
-              }}
+              onSelectImage={selectProfileImage}
+              submitting={submitting}
+              onComplete={() => submit(true)}
+              onSkip={() => submit(false)}
             />
           )}
           {step === 3 && <CompleteStep name={form.name} />}
