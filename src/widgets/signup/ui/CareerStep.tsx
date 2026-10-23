@@ -34,7 +34,7 @@ export default function CareerStep({
   onChangeCareerType,
   onChangeCareerYears,
 }: CareerStepProps) {
-  const isExperienced = careerType === "experienced";
+  const isExperienced = careerType === "EXPERIENCED";
 
   return (
     <div className="flex flex-col items-center gap-8 w-full text-center">
@@ -64,7 +64,7 @@ export default function CareerStep({
             onChange={(next) => {
               onChangeCareerType(next);
               // 신입으로 바꾸면 이전에 고른 년차는 초기화
-              if (next !== "experienced") onChangeCareerYears("");
+              if (next !== "EXPERIENCED") onChangeCareerYears("");
             }}
           />
         </div>
