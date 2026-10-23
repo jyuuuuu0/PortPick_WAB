@@ -6,7 +6,8 @@ import { useRef } from "react";
 interface ProfileStepProps {
   name: string;
   profileImage: string;
-  onSelectImage: (previewUrl: string) => void;
+  onSelectImage: (file: File) => void;
+  submitting?: boolean;
   onComplete: () => void;
   onSkip: () => void;
 }
@@ -20,13 +21,15 @@ export default function ProfileStep({
   onSelectImage,
   onComplete,
   onSkip,
+  submitting = false,
 }: ProfileStepProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-    onSelectImage(URL.createObjectURL(file));
+    onSelectImage(file);
+    event.target.value = "";
   };
 
   return (
@@ -77,14 +80,16 @@ export default function ProfileStep({
         <button
           type="button"
           onClick={onComplete}
-          className="flex-1 h-[34px] rounded-[8px] bg-main-200 text-xs font-medium text-black hover:bg-main-300 transition-colors cursor-pointer"
+          disabled={submitting || !profileImage}
+          className="flex-1 h-[34px] rounded-[8px] bg-main-200 text-xs font-medium text-black hover:bg-main-300 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          완료하기
+          {submitting ? "가입 중..." : "완료하기"}
         </button>
         <button
           type="button"
           onClick={onSkip}
-          className="flex-1 h-[34px] rounded-[8px] bg-gray-100 text-xs font-medium text-gray-700 hover:bg-gray-200 transition-colors cursor-pointer"
+          disabled={submitting}
+          className="flex-1 h-[34px] rounded-[8px] bg-gray-100 text-xs font-medium text-gray-700 hover:bg-gray-200 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         >
           건너뛰기
         </button>
