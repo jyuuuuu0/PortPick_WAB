@@ -5,6 +5,7 @@ import { toast } from "sonner";
 
 import { completeSignup, useAuthStatus, userKeys } from "@/entities/user";
 import { getErrorMessage } from "@/shared/api/client";
+import { compressImage } from "@/shared/lib/image";
 import type { SignupForm } from "./types";
 
 export const LAST_STEP = 3;
@@ -59,12 +60,23 @@ export function useSignupForm() {
     (value: SignupForm[K]) =>
       setForm((prev) => ({ ...prev, [key]: value }));
 
-  const selectProfileImage = (file: File | null) =>
+  // 프로필 이미지는 작게 보여주므로 줄여서 저장한다.
+  const selectProfileImage = async (file: File | null) => {
+    let next = file;
+    if (file) {
+      try {
+        next = await compressImage(file);
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : "이미지를 처리하지 못했어요.");
+        return;
+      }
+    }
     setForm((prev) => ({
       ...prev,
-      profileImageFile: file,
-      profileImage: file ? URL.createObjectURL(file) : "",
+      profileImageFile: next,
+      profileImage: next ? URL.createObjectURL(next) : "",
     }));
+  };
 
   const signup = useMutation({
     mutationFn: (withImage: boolean) => {
