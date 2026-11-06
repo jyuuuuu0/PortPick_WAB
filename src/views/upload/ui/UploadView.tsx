@@ -9,13 +9,17 @@ import { useRequireAuth } from "@/entities/user";
 import Upload from "@/shared/asset/svg/Upload";
 import { CloseIcon, FileIcon, LinkIcon } from "@/shared/asset/svg/Icons";
 import { getErrorMessage } from "@/shared/api/client";
+import { MAX_UPLOAD_MB } from "@/shared/config/env";
+import { DEFAULT_FIGMA_VIEW, isFigmaLink, withFigmaView } from "@/shared/lib/embed";
+import { compressImage, formatBytes } from "@/shared/lib/image";
 import Button from "@/shared/ui/Button";
 import Input from "@/shared/ui/Input";
 import { Header } from "@/widgets/header";
+import FigmaPreview from "./FigmaPreview";
 
 type Source = "link" | "file";
 
-const MAX_FILE_MB = 20;
+const MAX_UPLOAD_BYTES = MAX_UPLOAD_MB * 1024 * 1024;
 
 export default function UploadView() {
   const router = useRouter();
@@ -27,21 +31,36 @@ export default function UploadView() {
   const [description, setDescription] = useState("");
   const [source, setSource] = useState<Source>("link");
   const [embedLink, setEmbedLink] = useState("");
+  const [figmaView, setFigmaView] = useState(DEFAULT_FIGMA_VIEW);
   const [file, setFile] = useState<File | null>(null);
 
   const linkValid = /^https?:\/\/\S+$/.test(embedLink.trim());
+  const isFigma = linkValid && isFigmaLink(embedLink.trim());
+  // node-id 가 있으면 그 프레임이 처음 화면이 된다. (0-1 같은 값은 페이지 전체라 제외)
+  const figmaNodeId = isFigma ? embedLink.match(/[?&]node-id=([^&#]+)/)?.[1] : undefined;
+  const figmaHasFrame = !!figmaNodeId && !/^0(-|%3A|:)\d+$/i.test(figmaNodeId);
   const canSubmit =
     title.trim() !== "" &&
     (source === "link" ? linkValid : !!file) &&
     !createPortfolio.isPending;
 
-  const handleFile = (next?: File) => {
+  // 이미지는 제한을 넘을 때만 줄이고, PDF 는 원본 그대로 보낸다.
+  const handleFile = async (next?: File) => {
     if (!next) return;
-    if (next.size > MAX_FILE_MB * 1024 * 1024) {
-      toast.error(`파일은 ${MAX_FILE_MB}MB 이하만 올릴 수 있어요.`);
-      return;
+    try {
+      const prepared = next.type.startsWith("image/")
+        ? await compressImage(next, MAX_UPLOAD_BYTES, 4000)
+        : next;
+      if (prepared.size > MAX_UPLOAD_BYTES) {
+        toast.error(
+          `파일은 ${MAX_UPLOAD_MB}MB 이하만 올릴 수 있어요. (현재 ${formatBytes(prepared.size)})`,
+        );
+        return;
+      }
+      setFile(prepared);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "파일을 처리하지 못했어요.");
     }
-    setFile(next);
   };
 
   const handleSubmit = (event: FormEvent) => {
@@ -51,7 +70,12 @@ export default function UploadView() {
       {
         title: title.trim(),
         description: description.trim(),
-        embedLink: source === "link" ? embedLink.trim() : undefined,
+        embedLink:
+          source !== "link"
+            ? undefined
+            : isFigma
+              ? withFigmaView(embedLink.trim(), figmaView)
+              : embedLink.trim(),
         file: source === "file" ? file : null,
       },
       {
@@ -120,6 +144,14 @@ export default function UploadView() {
                   {embedLink && !linkValid && (
                     <p className="mt-1.5 text-xs text-red-500">http(s):// 로 시작하는 링크를 입력해주세요.</p>
                   )}
+                  {isFigma && (
+                    <FigmaPreview
+                      link={embedLink.trim()}
+                      hasFrame={figmaHasFrame}
+                      view={figmaView}
+                      onViewChange={setFigmaView}
+                    />
+                  )}
                 </>
               ) : file ? (
                 <div className="flex items-center justify-between gap-3 h-[52px] px-4 rounded-[8px] border border-main-200 bg-main-100/40">
@@ -149,7 +181,9 @@ export default function UploadView() {
                 >
                   <Upload className="w-5 h-5" />
                   클릭하거나 파일을 끌어다 놓으세요
-                  <span className="text-xs text-gray-500">PDF, 이미지 · 최대 {MAX_FILE_MB}MB</span>
+                  <span className="text-xs text-gray-500">
+                    PDF, 이미지 · 최대 {MAX_UPLOAD_MB}MB
+                  </span>
                 </button>
               )}
               <input

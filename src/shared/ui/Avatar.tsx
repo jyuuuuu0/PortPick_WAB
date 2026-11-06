@@ -1,4 +1,5 @@
 import DefaultAvatar from "@/shared/asset/svg/DefaultAvatar";
+import { toAssetUrl } from "@/shared/lib/asset";
 
 interface AvatarProps {
   src?: string | null;
@@ -13,7 +14,7 @@ export default function Avatar({ src, alt = "", className = "size-8" }: AvatarPr
       {src ? (
         // 외부(구글/S3) 이미지라 next/image 대신 img 를 쓴다.
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={src} alt={alt} className="size-full object-cover" referrerPolicy="no-referrer" />
+        <img src={toAssetUrl(src)} alt={alt} className="size-full object-cover" referrerPolicy="no-referrer" />
       ) : (
         <DefaultAvatar className="size-full" />
       )}

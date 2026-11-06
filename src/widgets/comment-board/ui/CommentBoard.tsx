@@ -7,6 +7,7 @@ import { useCommentActions, type Comment } from "@/entities/comment";
 import type { PortfolioDetail } from "@/entities/portfolio";
 import { CheckIcon } from "@/shared/asset/svg/Icons";
 import { getErrorMessage } from "@/shared/api/client";
+import { getFigmaView, isFigmaLink } from "@/shared/lib/embed";
 import { popoverPosition } from "../model/popoverPosition";
 import CommentForm from "./CommentForm";
 import CommentThread from "./CommentThread";
@@ -63,11 +64,32 @@ export default function CommentBoard({
     });
   };
 
+  // 이미지·PDF 는 내용 길이만큼 박스가 늘어난다.
+  const isFile = !portfolio.embedLink && !!portfolio.fileUrl;
+  const isFigma = isFigmaLink(portfolio.embedLink);
+  const figmaRatio = getFigmaView(portfolio.embedLink).ratio;
   const openComment = comments.find((comment) => comment.id === openId);
 
   return (
-    <div className="relative h-[70vh] min-h-[480px]">
-      <div className="absolute inset-0 rounded-xl overflow-hidden bg-main-100/40 border border-gray-100">
+    // 이미지·PDF 는 박스 없이 내용 크기 그대로, 링크는 고정 높이 박스 안에 보여준다.
+    // 피그마는 화면 크기가 달라도 같은 위치를 가리키도록 비율을 고정한다.
+    <div
+      style={isFigma ? { aspectRatio: `1 / ${figmaRatio}` } : undefined}
+      className={
+        isFile
+          ? "relative"
+          : isFigma
+            ? "relative"
+            : "relative h-[70vh] min-h-[480px]"
+      }
+    >
+      <div
+        className={
+          isFile
+            ? "rounded-xl overflow-hidden"
+            : "absolute inset-0 rounded-xl overflow-hidden bg-main-100/40 border border-gray-100"
+        }
+      >
         <PortfolioViewer portfolio={portfolio} />
       </div>
 
