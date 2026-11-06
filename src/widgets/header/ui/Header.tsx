@@ -21,10 +21,8 @@ export default function Header() {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // 구글 로그인만 하고 가입을 마치지 않은 사용자는 가입 화면으로 보낸다.
-  useEffect(() => {
-    if (auth?.authenticated && !auth.signupCompleted) router.replace("/signup");
-  }, [auth, router]);
+  // 구글 로그인만 하고 가입을 마치지 않은 사용자. 강제로 보내지 않고 버튼으로 안내한다.
+  const signupPending = !!auth?.authenticated && !auth.signupCompleted;
 
   useEffect(() => {
     if (!open) return;
@@ -93,10 +91,10 @@ export default function Header() {
           </div>
         ) : (
           <Link
-            href="/signin"
+            href={signupPending ? "/signup" : "/signin"}
             className="rounded-[8px] bg-main-300 px-4 py-2 text-sm font-medium text-white hover:bg-main-400 transition-colors"
           >
-            로그인
+            {signupPending ? "회원가입 마무리하기" : "로그인"}
           </Link>
         )}
       </div>

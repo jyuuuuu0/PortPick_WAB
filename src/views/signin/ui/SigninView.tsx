@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 import { toast } from "sonner";
 
-import { useAuthStatus } from "@/entities/user";
+import { useAuthStatus, useLogout } from "@/entities/user";
 import Google from "@/shared/asset/svg/Google";
 import { GOOGLE_LOGIN_URL } from "@/shared/config/env";
 import AuthBackground from "@/shared/ui/AuthBackground";
@@ -16,11 +16,13 @@ export default function SigninView() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { data: auth } = useAuthStatus();
+  const logout = useLogout();
+  // 구글 로그인은 했지만 회원가입을 마치지 않은 상태
+  const signupPending = !!auth?.authenticated && !auth.signupCompleted;
 
-  // 이미 로그인한 상태면 가입 여부에 따라 홈/회원가입으로 보낸다.
+  // 가입까지 마친 회원만 홈으로 보낸다. 가입 미완료 사용자는 이 화면에서 직접 고르게 한다.
   useEffect(() => {
-    if (!auth?.authenticated) return;
-    router.replace(auth.signupCompleted ? "/" : "/signup");
+    if (auth?.authenticated && auth.signupCompleted) router.replace("/");
   }, [auth, router]);
 
   // 구글 로그인 실패 시 서버가 ?error=... 를 붙여 돌려보낸다.
@@ -40,6 +42,28 @@ export default function SigninView() {
             공유하고 피드백 받아봐요!
           </p>
         </div>
+        {signupPending ? (
+          <div className="flex flex-col items-center gap-4 w-full">
+            <p className="text-sm text-gray-700 text-center">
+              <span className="text-main-300">{auth?.name || auth?.email}</span>
+              님은 아직 회원가입을 마치지 않았어요.
+            </p>
+            <Link
+              href="/signup"
+              className="flex items-center justify-center w-full h-[52px] rounded-[10px] bg-main-200 text-base font-medium text-black hover:bg-main-300 transition-colors"
+            >
+              회원가입 이어하기
+            </Link>
+            <button
+              type="button"
+              onClick={() => logout.mutate()}
+              disabled={logout.isPending}
+              className="text-sm text-gray-600 hover:text-main-300 transition-colors cursor-pointer disabled:opacity-50"
+            >
+              다른 계정으로 로그인
+            </button>
+          </div>
+        ) : (
         <div className="flex flex-col items-center gap-4 w-full">
           {/* OAuth 는 서버가 구글로 리다이렉트하므로 fetch 가 아닌 페이지 이동으로 시작한다 */}
           <a
@@ -58,6 +82,7 @@ export default function SigninView() {
             둘러보기
           </Link>
         </div>
+        )}
       </Card>
     </AuthBackground>
   );

@@ -18,6 +18,8 @@ export function useLogout() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: logout,
-    onSettled: () => queryClient.clear(),
+    // clear() 는 화면에 떠 있는 쿼리를 다시 불러오지 않아 이전 로그인 상태가 남는다.
+    // resetQueries 로 초기화하면서 보이는 쿼리를 다시 불러온다.
+    onSettled: () => queryClient.resetQueries(),
   });
 }
